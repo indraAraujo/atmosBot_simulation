@@ -17,7 +17,7 @@ def generate_launch_description():
   default_model_path = os.path.join(pkg_share, 'models/mobile_bot.urdf')
   robot_name_in_urdf = 'mobile_bot'
   default_rviz_config_path = os.path.join(pkg_share, 'rviz/urdf_config.rviz')
-  world_file_name = 'testing_environment.world.sdf'
+  world_file_name = 'mobile_bot.world.sdf'
   world_path = os.path.join(pkg_share, 'worlds', world_file_name)
   
   # Launch configuration variables specific to simulation
