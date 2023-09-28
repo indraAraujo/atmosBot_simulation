@@ -15,9 +15,10 @@ def generate_launch_description():
   pkg_share = FindPackageShare(package='test_bot').find('test_bot')
   default_launch_dir = os.path.join(pkg_share, 'launch')
   default_model_path = os.path.join(pkg_share, 'models/mobile_bot.urdf')
+  robot_localization_file_path = os.path.join(pkg_share, 'config/ekf.yaml') 
   robot_name_in_urdf = 'mobile_bot'
   default_rviz_config_path = os.path.join(pkg_share, 'rviz/urdf_config.rviz')
-  world_file_name = 'mobile_bot.world.sdf'
+  world_file_name = 'mobile_bot.world'
   world_path = os.path.join(pkg_share, 'worlds', world_file_name)
   
   # Launch configuration variables specific to simulation
@@ -58,7 +59,7 @@ def generate_launch_description():
     
   declare_use_sim_time_cmd = DeclareLaunchArgument(
     name='use_sim_time',
-    default_value='True',
+    default_value='true',
     description='Use simulation (Gazebo) clock if true')
 
   declare_use_simulator_cmd = DeclareLaunchArgument(
@@ -84,6 +85,15 @@ def generate_launch_description():
     PythonLaunchDescriptionSource(os.path.join(pkg_gazebo_ros, 'launch', 'gzclient.launch.py')),
     condition=IfCondition(PythonExpression([use_simulator, ' and not ', headless])))
 
+  # Start robot localization using an Extended Kalman filter
+  start_robot_localization_cmd = Node(
+    package='robot_localization',
+    executable='ekf_node',
+    name='ekf_filter_node',
+    output='screen',
+    parameters=[robot_localization_file_path, 
+    {'use_sim_time': use_sim_time}])
+
   # Subscribe to the joint states of the robot, and publish the 3D pose of each link.
   start_robot_state_publisher_cmd = Node(
     condition=IfCondition(use_robot_state_pub),
@@ -100,7 +110,8 @@ def generate_launch_description():
     executable='rviz2',
     name='rviz2',
     output='screen',
-    arguments=['-d', rviz_config_file])
+    arguments=['-d', rviz_config_file])    
+
   
   # Create the launch description and populate
   ld = LaunchDescription()
@@ -118,6 +129,7 @@ def generate_launch_description():
   # Add any actions
   ld.add_action(start_gazebo_server_cmd)
   ld.add_action(start_gazebo_client_cmd)
+  ld.add_action(start_robot_localization_cmd)
   ld.add_action(start_robot_state_publisher_cmd)
   ld.add_action(start_rviz_cmd)
 
