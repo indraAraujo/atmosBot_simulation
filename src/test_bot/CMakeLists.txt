@@ -8,6 +8,7 @@ endif()
 # dependências adicionadas durante o código (inclui tipagem dos tópicos a serem publicados manualmente)
 find_package(ament_cmake REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 
 if(BUILD_TESTING)
@@ -25,12 +26,16 @@ endif()
 # chamada dos executáveis
 add_executable(spin_robot src/spin_robot.cpp)
 ament_target_dependencies(spin_robot rclcpp geometry_msgs) #adicionar todas as dependencias
+add_executable(read_laser src/read_laser.cpp)
+ament_target_dependencies(read_laser rclcpp sensor_msgs) 
+
 
 install(DIRECTORY launch models worlds meshes maps config params rviz src
     DESTINATION share/${PROJECT_NAME}/
 )
 
 install(TARGETS
+  read_laser
   spin_robot
   DESTINATION lib/${PROJECT_NAME}/
 )
