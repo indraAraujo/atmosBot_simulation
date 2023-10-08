@@ -14,8 +14,42 @@ class ReadLaser : public rclcpp::Node{
         }
     
     private:
-        void topic_callback(const sensor_msgs::msg::LaserScan::SharedPtr _msg){
-             RCLCPP_INFO(this->get_logger(), "OUVINDO: '%f' e %f", _msg->ranges[0], _msg->ranges[100]);
+        /*
+            indica se há obstáculos no seu raio,
+            dando maior importância para os obstáculos a frente
+
+            olha os raios frontais e depois os laterais
+        */
+        void topic_callback(const sensor_msgs::msg::LaserScan::SharedPtr _scan){
+            //  RCLCPP_INFO(this->get_logger(), "Intervalo do scanner %ld", sizeof(_scan->ranges)); // identificar a quantidade de lasers
+            float middleLaser =  _scan->ranges[0];
+            float leftLaser = _scan->ranges[12];
+            float rightLaser = _scan->ranges[23];
+
+            float minimumDistance = 0.5;
+            
+            RCLCPP_INFO(this->get_logger(), "Extremidade 1: %f \n Meio: %f \n Extremidade 2: %f", leftLaser, middleLaser, rightLaser);
+            
+            if(middleLaser<minimumDistance){ //verifica obstáculo na frente
+             RCLCPP_INFO(this->get_logger(), "OBSTÁCULO A FRENTE ");
+             check_sides(leftLaser, rightLaser); //verifica obstáculos laterais
+            }else if(leftLaser<minimumDistance){
+             RCLCPP_INFO(this->get_logger(), "OBSTÁCULO NO LADO ESQUERDO ");
+            }else if(rightLaser<minimumDistance){
+             RCLCPP_INFO(this->get_logger(), "OBSTÁCULO NO LADO DIREITO ");
+            }
+        }
+
+        /*
+            verifica obstáculos pelos raios extremos 
+            de acordo com a distância mínima definida
+        */
+        void check_sides(float leftLaser, float rightLaser, float minimumDistance){
+            if(leftLaser>minimumDistance){
+                RCLCPP_INFO(this->get_logger(), "LIVRE PARA A ESQUERDA ");
+             } else if(rightLaser > minimumDistance){
+                RCLCPP_INFO(this->get_logger(), "LIVRE PARA A DIREITA ");
+             }
         }
         rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr subscription_;
 };
