@@ -32,7 +32,7 @@ class ReadLaser : public rclcpp::Node{
             
             if(middleLaser<minimumDistance){ //verifica obstáculo na frente
              RCLCPP_INFO(this->get_logger(), "OBSTÁCULO A FRENTE ");
-             check_sides(leftLaser, rightLaser); //verifica obstáculos laterais
+             check_sides(leftLaser, rightLaser, minimumDistance); //verifica obstáculos laterais
             }else if(leftLaser<minimumDistance){
              RCLCPP_INFO(this->get_logger(), "OBSTÁCULO NO LADO ESQUERDO ");
             }else if(rightLaser<minimumDistance){
