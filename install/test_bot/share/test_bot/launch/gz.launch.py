@@ -1,6 +1,1 @@
-from launch import LaunchDescription
-
-
-def generate_launch_description():
-    ld = LaunchDescription()
-    return ld
+/home/indra/atmosBot_simulation/src/test_bot/launch/gz.launch.py

@@ -1,2 +1,1 @@
-source;share/test_bot/environment/ament_prefix_path.sh
-source;share/test_bot/environment/path.sh
+/home/indra/atmosBot_simulation/build/test_bot/ament_cmake_environment_hooks/local_setup.dsv
