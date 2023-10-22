@@ -5,6 +5,7 @@
 #include <iostream>
 #include <ctime>
 #include <thread>
+#include <cmath>
 
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"  // sensor_msgs/msg/LaserScan
@@ -21,38 +22,45 @@ class AvoidObstacles : public rclcpp::Node{
             timer_ = this->create_wall_timer(1ms, std::bind(&AvoidObstacles::avoid_obstacle_callback, this));
             laser_ranges_.fill(0.0);
             scan_available_ = false;
+            angle_min_ = 0.0;
+            angle_increment_=0.0;
+            ranges_size_=0;
         }
         
     private:
         //Armazenamento das leituras do laser na variável compartilhada entre callbacks
         void laser_callback(const sensor_msgs::msg::LaserScan::SharedPtr _scan){
-            for (int i = 0; i < 24; i++) {
+            ranges_size_ = sizeof(_scan->ranges);
+            for (int i = 0; i < ranges_size_; i++) {
                 laser_ranges_[i] = _scan->ranges[i];
             }
+            angle_increment_=_scan->angle_increment;
+            angle_min_=_scan->angle_min;
+
             scan_available_ = true;
 
         }
 
+        //Resgata a leitura de um raio de acordo com o ângulo proporcionado em graus
+        int get_range(float degrees){
+            float radians = degrees * (M_PI / 180.0); //transforma o parâmetro recebido em radianos
+            float index = ((radians-angle_min_)/angle_increment_);//calcula o indice do vetor de leituras do sensor em que está o angulo recebido
+            int roundedIndex = static_cast<int>(round(index)); //arrendonda o valor do indice para o numero inteiro mais próximo
+            float range = laser_ranges_[roundedIndex]; //resgata a leitura de acordo com o indice calculado
+
+            return range; //retorna a leitura
+        }
+
+        //Consegue o angulo ao qual se refere um indice do vetor de leituras do sensor
+        float get_angle(int index){
+            float radians = (index*angle_increment_)+angle_min_; //calcula o angulo em radianos a partir do indice recebido
+            float degrees = radians * (180.0 / M_PI); //calcula o equivalente em graus
+
+            return degrees; //retorna o angulo em graus
+        }
+
         //Controle do robô para evitar os obstáculos
         void avoid_obstacle_callback(){
-            //Valor mínimo dentre os 45 graus a extrema esquerda
-            float left_min_range = std::numeric_limits<float>::max();
-            for(int i=20; i>17; i--){
-                if((!std::isinf(laser_ranges_[i]))&&(laser_ranges_[i]<left_min_range)){
-                    left_min_range=laser_ranges_[i];
-                }
-            }
-          
-            //Valor mínimo dentre os 45 graus a extrema direita
-            float right_min_range = std::numeric_limits<float>::max();
-            for(int i=4; i<7; i++){
-                if((!std::isinf(laser_ranges_[i]))&&(laser_ranges_[i]<right_min_range)){
-                    right_min_range=laser_ranges_[i];
-                }
-            }
-
-            //Valor do meio
-            float middle_range= laser_ranges_[0];
 
             //Mensagem a ser publicada no tópico de velocidade
             auto message = geometry_msgs::msg::Twist();
@@ -61,14 +69,33 @@ class AvoidObstacles : public rclcpp::Node{
             float linear_velocity = 0.0; //m/s
             float angular_velocity = 0.0; //rad/s
 
-                std::cout << "NOVA LEITURA"  << std::endl;
-                std::cout << "Left range: " << left_min_range << std::endl;
-                std::cout << "Right range: " << right_min_range << std::endl;
-                std::cout << "Middle range: " << middle_range << std::endl;
-                std::cout << "---------------"  << std::endl;
-
-            
             if(scan_available_){ //Valida se as leituras do scan já estao disponíveis
+
+                //Valor mínimo dentre os 90 graus a esquerda
+                float left_min_range = std::numeric_limits<float>::max();
+                for(int i=18; i<24; i++){
+                    if((!std::isinf(laser_ranges_[i]))&&(laser_ranges_[i]<left_min_range)){
+                        left_min_range=laser_ranges_[i];
+                    }
+                }
+                
+                //Valor mínimo dentre os 90 graus a direita
+                float right_min_range = std::numeric_limits<float>::max();
+                for(int i=1; i<7; i++){
+                    if((!std::isinf(laser_ranges_[i]))&&(laser_ranges_[i]<right_min_range)){
+                        right_min_range=laser_ranges_[i];
+                    }
+                }
+
+                //Valor do meio
+                float middle_range= laser_ranges_[0];
+
+                // std::cout << "NOVA LEITURA"  << std::endl;
+                // std::cout << "Left range: " << left_min_range << std::endl;
+                // std::cout << "Right range: " << right_min_range << std::endl;
+                // std::cout << "Middle range: " << middle_range << std::endl;
+                // std::cout << "---------------"  << std::endl;
+          
                 if(middle_range<=0.9){ // Identifica se tem um obstáculo logo a frente
                     if(left_min_range<=0.5 && right_min_range>=0.5){ //Identifica se pode virar para a direita
                         linear_velocity = 0.0;
@@ -77,13 +104,12 @@ class AvoidObstacles : public rclcpp::Node{
                         linear_velocity = 0.0; 
                         angular_velocity = 0.5; //vira para a esquerda
                     }else if(left_min_range<=0.5 && right_min_range<=0.5){ 
-                        linear_velocity = -0.2; //robô dá ré pois não consegue virar para lugar nenhum
                         angular_velocity = 0.0;
+                        linear_velocity = -0.2; //robô dá ré pois não consegue virar para lugar nenhum
                     }else{ //ambos os lados do robô estão sem obstáculos muito próximos
                         linear_velocity=0.0;
                         angular_velocity=0.5; //vira a esquerda
                     }
-                   
                 }else{ // não existe nenhum obstáculo na frente
                     if(left_min_range<=0.5 && right_min_range>=0.5){ //Identifica se não está batendo em nada do lado esquerdo
                         linear_velocity = 0.0;
@@ -92,8 +118,8 @@ class AvoidObstacles : public rclcpp::Node{
                         linear_velocity = 0.0; 
                         angular_velocity = 0.2; //vira para a esquerda
                     }else{ 
-                        linear_velocity = 0.2; // robô segue em frente
                         angular_velocity = 0.0;
+                        linear_velocity = 0.2; // robô segue em frente
                     }
                  }
             }
@@ -111,8 +137,11 @@ class AvoidObstacles : public rclcpp::Node{
         rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr subscription_;
         rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_;
         rclcpp::TimerBase::SharedPtr timer_;
-        std::array<float, 24> laser_ranges_;
+        std::array<float, 360> laser_ranges_;
         bool scan_available_;
+        float angle_min_;
+        float angle_increment_;
+        int ranges_size_;
 };
 
 int main(int argc, char *argv[]){
@@ -123,30 +152,3 @@ int main(int argc, char *argv[]){
      return 0;
 }
 
-//  if((right_min_range - left_min_range)>0.9){ //valida se tem um obstáculo do lado esquerdo extremo
-//                         if(left_min_range>=0.9){  //objeto não tá tão próximo 
-//                             linear_velocity = 0.2; // robô continua para frente
-//                         }else{ // objeto está próximo
-//                             linear_velocity = 0.0;
-//                             angular_velocity = -0.5; // robô vira para a direita
-//                         }
-//                     } else if((left_min_range - right_min_range)>0.9){ //valida se tem um obstáculo do lado direito extremo
-//                         if(right_min_range>=0.9){  //objeto não tá tão próximo 
-//                             linear_velocity = 0.2; // robô continua para frente
-//                         }else{ // objeto está próximo
-//                             linear_velocity = 0.0;
-//                             angular_velocity = 0.5; // robô vira para a esquerda
-//                         }
-//                     } else { //tem um obstáculo muito próximo de um dos extremos ou não tem obstáculo algum próximo
-//                         if((left_min_range<=0.9)||(right_min_range<=0.9)){ //valida se o obstáculo está muito próximo
-//                             linear_velocity = 0.0;
-//                             if(right_min_range<=left_min_range){ // valida se o obstáculo está do lado direito
-//                                 angular_velocity = 0.5; // vira o robô para a esquerda
-//                             }else{
-//                                 angular_velocity = -0.5; // vira o robô para a direita já que o obstáculo está do lado esquerdo
-//                             }
-//                         }else{ // não existe nenhum obstáculo próximo aos lados
-//                             linear_velocity = 0.0; 
-//                             angular_velocity = 0.5; //robô vira para a esquerda
-//                         }
-//                     }
