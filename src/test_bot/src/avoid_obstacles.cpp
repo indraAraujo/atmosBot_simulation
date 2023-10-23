@@ -16,10 +16,22 @@ using namespace std::chrono_literals;
 class AvoidObstacles : public rclcpp::Node{
     public: 
         AvoidObstacles() : Node("avoid_obstacles"){ 
-            std::this_thread::sleep_for(std::chrono::seconds(4));
-            subscription_ = this->create_subscription<sensor_msgs::msg::LaserScan>("/scan", 10, std::bind(&AvoidObstacles::laser_callback, this, std::placeholders::_1));      
-            publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
+            //definição do perfil de QoS para melhorar a comunicação entre os nós
+            auto qos_profile = rclcpp::QoS(rclcpp::KeepLast(10));     
+            qos_profile.reliability(rmw_qos_reliability_policy_t::RMW_QOS_POLICY_RELIABILITY_RELIABLE);                           // FIFO de até 10 mensagens
+            
+
+            //aguarda 4 segundos para todos os componentes iniciarem na simulação
+            std::this_thread::sleep_for(std::chrono::seconds(4)); 
+            
+            //cria a inscrição pro tópico do laser para conseguir suas informações
+            subscription_ = this->create_subscription<sensor_msgs::msg::LaserScan>("/scan", qos_profile, std::bind(&AvoidObstacles::laser_callback, this, std::placeholders::_1));      
+            //cria um publicador pro tópico da velocidade para controlar a locomoção do robo
+            publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", qos_profile);
+            //define um período de 1 ms para executar o algoritmo de evitar obstáculos
             timer_ = this->create_wall_timer(1ms, std::bind(&AvoidObstacles::avoid_obstacle_callback, this));
+            
+            //definição de variáveis comuns
             laser_ranges_.fill(0.0);
             scan_available_ = false;
             angle_min_ = 0.0;
@@ -72,35 +84,36 @@ class AvoidObstacles : public rclcpp::Node{
             if(scan_available_){ //Valida se as leituras do scan já estao disponíveis
 
                 //Valor mínimo dentre os 90 graus a esquerda
-                float left_min_range = std::numeric_limits<float>::max();
-                for(int i=18; i<24; i++){
-                    if((!std::isinf(laser_ranges_[i]))&&(laser_ranges_[i]<left_min_range)){
-                        left_min_range=laser_ranges_[i];
+                float right_min_range = std::numeric_limits<float>::max();
+                for(int i=18; i<23; i++){
+                    if((!std::isinf(laser_ranges_[i]))&&(laser_ranges_[i]<right_min_range)){
+                        right_min_range=laser_ranges_[i];
                     }
                 }
                 
                 //Valor mínimo dentre os 90 graus a direita
-                float right_min_range = std::numeric_limits<float>::max();
+                float left_min_range = std::numeric_limits<float>::max();
                 for(int i=1; i<7; i++){
-                    if((!std::isinf(laser_ranges_[i]))&&(laser_ranges_[i]<right_min_range)){
-                        right_min_range=laser_ranges_[i];
+                    if((!std::isinf(laser_ranges_[i]))&&(laser_ranges_[i]<left_min_range)){
+                        left_min_range=laser_ranges_[i];
                     }
                 }
 
                 //Valor do meio
                 float middle_range= laser_ranges_[0];
 
-                // std::cout << "NOVA LEITURA"  << std::endl;
-                // std::cout << "Left range: " << left_min_range << std::endl;
-                // std::cout << "Right range: " << right_min_range << std::endl;
-                // std::cout << "Middle range: " << middle_range << std::endl;
-                // std::cout << "---------------"  << std::endl;
+                std::cout << "NOVA LEITURA"  << std::endl;
+                std::cout << "Left range: " << left_min_range << std::endl;
+                std::cout << "Right range: " << right_min_range << std::endl;
+                std::cout << "Middle range: " << middle_range << std::endl;
+                std::cout << "---------------"  << std::endl;
           
                 if(middle_range<=0.9){ // Identifica se tem um obstáculo logo a frente
-                    if(left_min_range<=0.5 && right_min_range>=0.5){ //Identifica se pode virar para a direita
+                    if(left_min_range<=0.5 && right_min_range>0.5){ //Identifica se pode virar para a direita
                         linear_velocity = 0.0;
                         angular_velocity = -0.5; //vira para a direita
-                    }else if(left_min_range>=0.5 && right_min_range<=0.5){ //Identifica se pode virar para a esquerda
+
+                    }else if(right_min_range<=0.5 && left_min_range>0.5){ //Identifica se pode virar para a esquerda
                         linear_velocity = 0.0; 
                         angular_velocity = 0.5; //vira para a esquerda
                     }else if(left_min_range<=0.5 && right_min_range<=0.5){ 
@@ -111,12 +124,13 @@ class AvoidObstacles : public rclcpp::Node{
                         angular_velocity=0.5; //vira a esquerda
                     }
                 }else{ // não existe nenhum obstáculo na frente
-                    if(left_min_range<=0.5 && right_min_range>=0.5){ //Identifica se não está batendo em nada do lado esquerdo
+                    if(left_min_range<=0.5 && right_min_range>0.5){ //Identifica se pode virar para a direita
                         linear_velocity = 0.0;
-                        angular_velocity = -0.2; //vira para a direita
-                    }else if(left_min_range>=0.5 && right_min_range<=0.5){ //Identifica se não está batendo em nada do lado direito
+                        angular_velocity = -0.5; //vira para a direita
+
+                    }else if(right_min_range<=0.5 && left_min_range>0.5){ //Identifica se pode virar para a esquerda
                         linear_velocity = 0.0; 
-                        angular_velocity = 0.2; //vira para a esquerda
+                        angular_velocity = 0.5; //vira para a esquerda
                     }else{ 
                         angular_velocity = 0.0;
                         linear_velocity = 0.2; // robô segue em frente
@@ -131,8 +145,6 @@ class AvoidObstacles : public rclcpp::Node{
             //Publica o comando da velocidade
             publisher_->publish(message);
         }
-
-
 
         rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr subscription_;
         rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_;
