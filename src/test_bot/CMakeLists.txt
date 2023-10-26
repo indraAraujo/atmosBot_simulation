@@ -30,7 +30,7 @@ avoid_obstacles
 DESTINATION lib/${PROJECT_NAME}/
 )
 
-install(DIRECTORY launch models worlds meshes maps config params rviz src
+install(DIRECTORY launch models worlds meshes config params rviz src
 DESTINATION share/${PROJECT_NAME}/
 )
 
