@@ -6170,14 +6170,14 @@
         <max_wheel_acceleration>1.0</max_wheel_acceleration>
         <command_topic>cmd_vel</command_topic>
         <publish_odom>1</publish_odom>
-        <publish_odom_tf>0</publish_odom_tf>
+        <publish_odom_tf>1</publish_odom_tf>
         <publish_wheel_tf>0</publish_wheel_tf>
         <odometry_topic>odom</odometry_topic>
         <odometry_frame>odom</odometry_frame>
         <robot_base_frame>base_footprint</robot_base_frame>
         <odometry_source>0</odometry_source>
         <ros>
-          <remapping>odom:=wheel/odometry</remapping>
+          <remapping>odom:=odom</remapping>
         </ros>
       </plugin>
       <plugin name='mobile_bot_joint_state' filename='libgazebo_ros_joint_state_publisher.so'>

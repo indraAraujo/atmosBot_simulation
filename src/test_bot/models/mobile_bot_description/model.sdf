@@ -435,7 +435,7 @@
 
     <!-- When true, publish coordinate transform from odom to base_footprint -->
     <!-- I usually use the robot_localization package to publish this transform -->   
-    <publish_odom_tf>false</publish_odom_tf>
+    <publish_odom_tf>true</publish_odom_tf>
     
     <!-- When true, publish coordinate transform from base_link to the wheels -->
     <!-- The robot_state_publisher package is often used to publish this transform -->   
@@ -450,7 +450,7 @@
 
     <!-- Change the ROS topic we will publish the odometry data to -->
     <ros>
-      <remapping>odom:=wheel/odometry</remapping>
+      <remapping>odom:=odom</remapping>
     </ros>
 
   </plugin>
