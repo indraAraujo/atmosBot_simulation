@@ -132,40 +132,6 @@
   <xacro:wheel prefix="front_wr" x_reflect="1" y_reflect="-1" />
 
 
-  <!-- *********************** CASTER WHEEL ******************************  -->
-  <!-- We add a caster wheel. It will be modeled as sphere.
-       We define the wheel’s geometry, material and the joint to connect it to 
-       base_link at the appropriate location. -->
-  <!-- <link name="front_caster">
-    <visual>
-      <geometry>
-        <sphere radius="${(wheel_radius+wheel_zoff-(base_height/2))}"/>
-      </geometry>
-      <material name="White">
-        <color rgba="${255/255} ${255/255} ${255/255} 1.0"/>
-      </material>
-    </visual>
-    <collision>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-        <sphere radius="${(wheel_radius+wheel_zoff-(base_height/2))}"/>
-      </geometry>
-    </collision>
-    <xacro:sphere_inertia m="10.05" r="${(wheel_radius+wheel_zoff-(base_height/2))}"/>
-  </link>
-
-  <gazebo reference="front_caster">
-    <mu1>0.01</mu1>
-    <mu2>0.01</mu2>
-    <material>Gazebo/White</material>
-  </gazebo>
-
-  <joint name="caster_joint" type="fixed">
-    <parent link="base_link"/>
-    <child link="front_caster"/>
-    <origin xyz="${caster_xoff} 0.0 ${-(base_height/2)}" rpy="0 0 0"/>
-  </joint>
-   -->
   <!-- *********************** IMU SETUP *********************************  -->
   <!-- Each sensor must be attached to a link.                              --> 
   

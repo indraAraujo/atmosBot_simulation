@@ -204,8 +204,8 @@
       </scan>
       <range>
         <min>0.120000</min> <!--alcance mínimo do sensor em metros-->
-        <max>3.5</max> <!--alcance máximo do sensor em metros-->
-        <resolution>0.015000</resolution>
+        <max>20.0</max> <!--alcance máximo do sensor em metros-->
+        <!-- <resolution>0.015000</resolution> -->
       </range>
       <noise>
         <type>gaussian</type>
@@ -308,35 +308,6 @@
   </visual>
 </link>
 
-  <!-- *********************** CASTER WHEEL ******************************  -->
-  <!-- <link name='front_caster'>
-    <pose>0.217 0 -0.1 0 0 0</pose>
-    <collision name='collision'>
-      <geometry>
-        <sphere>
-          <radius>0.09</radius>
-        </sphere>
-      </geometry>
-      <surface>
-        <friction>
-          <ode>
-            <mu>0.01</mu>
-            <mu2>0.01</mu2>
-            <slip1>1.0</slip1>
-            <slip2>1.0</slip2>
-          </ode>
-        </friction>
-      </surface>
-    </collision>
-    <visual name="front_caster_visual">
-      <geometry>
-        <sphere>
-          <radius>0.09</radius>
-        </sphere>
-      </geometry>
-    </visual>
-  </link> -->
-
   <!-- ************************ JOINTS ***********************************  -->
   <!-- Pose of the joint is the same as the child link frame -->
   <!-- Axis is the axis of rotation relative to the child link frame -->
@@ -383,12 +354,6 @@
   </axis>
 </joint>
 
-  <!-- <joint name='caster_joint' type='fixed'>
-    <parent>base_link</parent>
-    <child>front_caster</child>
-    <pose>0 0 0 0 0 0</pose>
-  </joint> -->
-
   <joint name="imu_joint" type="fixed">
     <parent>base_link</parent>
     <child>imu_link</child>
@@ -434,12 +399,10 @@
     <publish_odom>true</publish_odom>
 
     <!-- When true, publish coordinate transform from odom to base_footprint -->
-    <!-- I usually use the robot_localization package to publish this transform -->   
     <publish_odom_tf>true</publish_odom_tf>
     
-    <!-- When true, publish coordinate transform from base_link to the wheels -->
-    <!-- The robot_state_publisher package is often used to publish this transform -->   
-    <publish_wheel_tf>false</publish_wheel_tf>
+    <!-- When true, publish coordinate transform from base_link to the wheels --> 
+    <publish_wheel_tf>true</publish_wheel_tf>
 
     <odometry_topic>odom</odometry_topic>
     <odometry_frame>odom</odometry_frame>

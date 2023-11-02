@@ -5855,18 +5855,18 @@
                 <samples>24</samples>
                 <min_angle>0</min_angle>
                 <max_angle>6.28318</max_angle>
-                <resolution>1</resolution>
+                <!-- <resolution>1</resolution> -->
               </horizontal>
-              <vertical>
+              <!-- <vertical>
                 <samples>1</samples>
                 <min_angle>0</min_angle>
                 <max_angle>0</max_angle>
-              </vertical>
+              </vertical> -->
             </scan>
             <range>
               <min>0.12</min>
-              <max>3.5</max>
-              <resolution>0.015</resolution>
+              <max>20.0</max>
+              <!-- <resolution>0.015</resolution> -->
             </range>
             <noise>
               <type>gaussian</type>
@@ -6171,7 +6171,7 @@
         <command_topic>cmd_vel</command_topic>
         <publish_odom>1</publish_odom>
         <publish_odom_tf>1</publish_odom_tf>
-        <publish_wheel_tf>0</publish_wheel_tf>
+        <publish_wheel_tf>1</publish_wheel_tf>
         <odometry_topic>odom</odometry_topic>
         <odometry_frame>odom</odometry_frame>
         <robot_base_frame>base_footprint</robot_base_frame>

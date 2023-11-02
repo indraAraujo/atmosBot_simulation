@@ -16,6 +16,7 @@ def generate_launch_description():
   pkg_share = FindPackageShare(package='test_bot').find('test_bot')
  
   default_rviz_config_path = os.path.join(pkg_share, 'rviz/urdf_config.rviz')
+  # default_rviz_config_path = '/opt/ros/humble/share/nav2_bringup/rviz/nav2_default_view.rviz'
   default_model_path = os.path.join(pkg_share, 'models/mobile_bot.urdf')
 
   # Set the path to the world file
