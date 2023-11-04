@@ -6,17 +6,21 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
- 
+from launch.substitutions import PathJoinSubstitution
+from ament_index_python.packages import get_package_share_directory
+
 def generate_launch_description():
  
   # Set the path to the Gazebo ROS package
   pkg_gazebo_ros = FindPackageShare(package='gazebo_ros').find('gazebo_ros')   
+  pkg_nav2 = FindPackageShare(package='nav2_bringup').find('nav2_bringup')   
+  pkg_slamtoolbox = FindPackageShare(package='slam_toolbox').find('slam_toolbox')   
    
   # Set the path to this package.
   pkg_share = FindPackageShare(package='test_bot').find('test_bot')
- 
-  default_rviz_config_path = os.path.join(pkg_share, 'rviz/urdf_config.rviz')
-  # default_rviz_config_path = '/opt/ros/humble/share/nav2_bringup/rviz/nav2_default_view.rviz'
+
+  # default_rviz_config_path = os.path.join(pkg_share, 'rviz/urdf_config.rviz')
+  default_rviz_config_path = '/opt/ros/humble/share/nav2_bringup/rviz/nav2_default_view.rviz'
   default_model_path = os.path.join(pkg_share, 'models/mobile_bot.urdf')
 
   # Set the path to the world file
@@ -108,6 +112,7 @@ def generate_launch_description():
     name='rviz2',
     output='screen',
     arguments=['-d', rviz_config_file])  
+
   
   # Create the launch description and populate
   ld = LaunchDescription()
@@ -127,5 +132,14 @@ def generate_launch_description():
   ld.add_action(start_gazebo_client_cmd)
   ld.add_action(start_robot_state_publisher_cmd)
   ld.add_action(start_rviz_cmd)
+  # ld.add_action(IncludeLaunchDescription(
+  #       PythonLaunchDescriptionSource(os.path.join(pkg_nav2, 'launch', 'navigation_launch.py')),
+  #       launch_arguments={'use_sim_time': 'True'}.items(),
+  # ))
+  # ld.add_action(IncludeLaunchDescription(
+  #     PythonLaunchDescriptionSource(os.path.join(pkg_slamtoolbox, 'launch', 'online_async_launch.py')),
+  #     launch_arguments={'use_sim_time': 'True'}.items(),
+  #     # launch_arguments={'params_file': '/home/indra/atmosBot_simulation/src/test_bot/config/slam_toolbox.yaml', 'use_sim_time': 'True'}.items(),
+  # ))
  
   return ld

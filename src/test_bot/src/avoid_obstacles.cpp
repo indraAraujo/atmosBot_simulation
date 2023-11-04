@@ -21,8 +21,8 @@ class AvoidObstacles : public rclcpp::Node{
             qos_profile.reliability(rmw_qos_reliability_policy_t::RMW_QOS_POLICY_RELIABILITY_RELIABLE);                           // FIFO de até 10 mensagens
             
 
-            //aguarda 4 segundos para todos os componentes iniciarem na simulação
-            std::this_thread::sleep_for(std::chrono::seconds(4)); 
+            //aguarda 1 minuto para todos os componentes iniciarem na simulação
+            std::this_thread::sleep_for(std::chrono::seconds(60)); 
             
             //cria a inscrição pro tópico do laser para conseguir suas informações
             subscription_ = this->create_subscription<sensor_msgs::msg::LaserScan>("/scan", qos_profile, std::bind(&AvoidObstacles::laser_callback, this, std::placeholders::_1));      

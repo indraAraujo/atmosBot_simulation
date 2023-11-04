@@ -6171,11 +6171,11 @@
         <command_topic>cmd_vel</command_topic>
         <publish_odom>1</publish_odom>
         <publish_odom_tf>1</publish_odom_tf>
-        <publish_wheel_tf>1</publish_wheel_tf>
+        <publish_wheel_tf>0</publish_wheel_tf>
         <odometry_topic>odom</odometry_topic>
         <odometry_frame>odom</odometry_frame>
         <robot_base_frame>base_footprint</robot_base_frame>
-        <odometry_source>0</odometry_source>
+        <odometry_source>1</odometry_source>
         <ros>
           <remapping>odom:=odom</remapping>
         </ros>
