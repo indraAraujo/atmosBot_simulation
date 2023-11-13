@@ -1,0 +1,18 @@
+#include "nav2_behavior_tree/bt_action_node.hpp"
+#include "atmos_bot/action/wander.hpp"  
+
+namespace atmos_bot
+{
+
+class WanderPlugin : public nav2_behavior_tree::BtActionNode<atmos_bot::action::Wander>
+{
+public:
+  WanderPlugin(
+    const std::string & xml_tag_name,
+    const BT::NodeConfiguration & conf);
+
+  void on_tick() override;
+  BT::NodeStatus on_success() override;
+};
+
+} 
