@@ -1,0 +1,7 @@
+# Goal
+bool start_wandering
+---
+# Result
+bool wandering_started
+---
+# No feedback needed
