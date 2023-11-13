@@ -10,7 +10,12 @@ find_package(ament_cmake REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
-
+find_package(behaviortree_cpp_v3 REQUIRED)
+find_package(rclcpp_action REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "action/Wander.action"
+)
 
 # chamada dos executáveis
 #rodar o robô
@@ -23,14 +28,27 @@ ament_target_dependencies(read_laser rclcpp sensor_msgs)
 add_executable(avoid_obstacles src/avoid_obstacles.cpp)
 ament_target_dependencies(avoid_obstacles rclcpp sensor_msgs geometry_msgs) 
 
+# vagar
+add_executable(wander src/wander.cpp)
+ament_target_dependencies(wander rclcpp rclcpp_action sensor_msgs geometry_msgs)
+rosidl_target_interfaces(wander ${PROJECT_NAME} "rosidl_typesupport_cpp")
+
+# plugin de behavior tree para vagar
+add_executable(WanderPlugin src//wander_plugin/wander_plugin.cpp)
+ament_target_dependencies(WanderPlugin rclcpp rclcpp_action behaviortree_cpp_v3)
+rosidl_target_interfaces(WanderPlugin ${PROJECT_NAME} "rosidl_typesupport_cpp")
+
+
 install(TARGETS
 read_laser
 spin_robot
 avoid_obstacles
+wander
+WanderPlugin
 DESTINATION lib/${PROJECT_NAME}/
 )
 
-install(DIRECTORY launch models worlds meshes config params rviz src maps
+install(DIRECTORY launch models worlds meshes config params rviz src maps action behavior_trees
 DESTINATION share/${PROJECT_NAME}/
 )
 
